@@ -13,6 +13,9 @@
 ![status](https://img.shields.io/badge/iOS%20App-待编译-lightgrey)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
+🌐 **在线入口（手机可直接看）**：https://number36cc-svg.github.io/esp32-openbot-car/
+— 项目控制台 / 四周计划 / 踩坑记录，一页跳转。
+
 ---
 
 ## 1. 这台车是什么
@@ -133,6 +136,7 @@ brew install esptool
 
 ```
 esp32-openbot-car/
+├── index.html                     # Pages 入口页（手机可直接打开的两个页面）
 ├── firmware/
 │   ├── openbot/openbot.ino        # 适配本车的 OpenBot 固件（唯一改动版本）
 │   └── moto-test/moto-test.ino    # 电机方向自动测试固件（无需控制端）
