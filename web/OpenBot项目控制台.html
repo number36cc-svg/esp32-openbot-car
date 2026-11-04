@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenBot 小车 · 项目控制台</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --line:#e6e8ec; --ink:#1c1f23; --sub:#6b7280;
+    --ok:#16a34a; --okbg:#e9f7ee; --warn:#b45309; --warnbg:#fdf4e3;
+    --todo:#2563eb; --todobg:#e8f0fe; --accent:#111827;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+       line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 18px 60px}
+  header{margin-bottom:22px}
+  .tagline{font-size:13px;color:var(--sub);letter-spacing:.04em}
+  h1{font-size:26px;margin:6px 0 4px;letter-spacing:-.02em}
+  h1 small{font-size:14px;font-weight:500;color:var(--sub);margin-left:8px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0 26px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+  .kpi .k{font-size:12px;color:var(--sub)}
+  .kpi .v{font-size:15px;font-weight:600;margin-top:3px}
+  .kpi.ok .v{color:var(--ok)} .kpi.wait .v{color:var(--warn)} .kpi.todo .v{color:var(--todo)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 14px;margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .card h2 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;color:var(--sub);font-weight:600;background:#fafbfc}
+  tr:last-child td{border-bottom:none}
+  code{background:#f2f3f5;padding:1px 5px;border-radius:4px;font-size:12.5px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600}
+  .pill.ok{background:var(--okbg);color:var(--ok)}
+  .pill.wait{background:var(--warnbg);color:var(--warn)}
+  .pill.todo{background:var(--todobg);color:var(--todo)}
+  ol,ul{margin:8px 0 6px;padding-left:20px}
+  li{margin:5px 0}
+  .steps{counter-reset:s;list-style:none;padding-left:0}
+  .steps li{counter-increment:s;position:relative;padding-left:34px;margin:10px 0}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .warnbox{background:var(--warnbg);border:1px solid #f3e2bd;border-radius:10px;padding:11px 13px;font-size:13.5px;color:#7c4a06}
+  .log{background:#0f1115;color:#d6dae1;border-radius:12px;padding:14px 15px;font-size:12.5px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-x:auto;white-space:pre;line-height:1.75}
+  .log .t{color:#6b7280} .log .g{color:#4ade80} .log .b{color:#7dd3fc} .log .y{color:#fcd34d}
+  footer{color:var(--sub);font-size:12px;text-align:center;margin-top:26px}
+  @media(max-width:520px){
+    h1{font-size:22px} .wrap{padding:20px 14px 50px}
+    table{font-size:12.5px} th,td{padding:7px 6px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="tagline">个人机器人实验室 · 项目控制台</div>
+    <h1>OpenBot 小车 <small>四驱差分 · iPhone 大脑</small></h1>
+    <div style="font-size:13px;color:#6b7280">最后更新：2026-11-04 18:58 · 硬件已到货，固件已刷入，等电池</div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi ok"><div class="k">ESP32 芯片</div><div class="v">在线 · 已识别</div></div>
+    <div class="kpi ok"><div class="k">固件</div><div class="v">OpenBot 已烧入</div></div>
+    <div class="kpi ok"><div class="k">蓝牙广播</div><div class="v">OpenBotCar ✅</div></div>
+    <div class="kpi wait"><div class="k">电机驱动</div><div class="v">等电池</div></div>
+    <div class="kpi todo"><div class="k">iPhone App</div><div class="v">待编译</div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>硬件核对结果</h2>
+    <table>
+      <tr><th style="width:120px">项目</th><th>实测</th></tr>
+      <tr><td>主控</td><td><span class="mono">ESP32-D0WD-V3</span> 双核 240MHz，4MB flash（app 分区 1.25MB）</td></tr>
+      <tr><td>MAC</td><td><span class="mono">d4:d4:da:6c:48:7c</span></td></tr>
+      <tr><td>串口</td><td><span class="mono">/dev/cu.usbserial-10</span>（macOS 自带驱动，无需安装）</td></tr>
+      <tr><td>驱动芯片</td><td>2 × <span class="mono">MX1508</span> 双 H 桥（四轮分别驱动，前后并联成左右两路）</td></tr>
+      <tr><td>底盘</td><td>3D 打印四驱，27×15cm 级，<b>四轮直驱差分转向</b>（不是商品页写的舵机转向）</td></tr>
+      <tr><td>供电</td><td>4 × 5 号电池 → 分两路：一路升 6V 降 3.3V 给 ESP32，一路直供电机</td></tr>
+      <tr><td>缺失部件</td><td>无分压电路（无电量检测）、无码盘、无超声波、无 LED</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>引脚对照（来自卖家源码，已写入固件）</h2>
+    <table>
+      <tr><th>功能</th><th>ESP32 GPIO</th><th>说明</th></tr>
+      <tr><td>左电机 IN1 / IN2</td><td class="mono">19 / 21</td><td>左前 + 左后并联到同一路</td></tr>
+      <tr><td>右电机 IN1 / IN2</td><td class="mono">32 / 33</td><td>右前 + 右后并联到同一路</td></tr>
+      <tr><td>停止</td><td colspan="2">两脚同时高 = 刹车（与 OpenBot 的 stop 逻辑一致）</td></tr>
+      <tr><td>启动死区</td><td colspan="2">占空比 <b>≥75%</b> 电机才转（卖家固件 <span class="mono">MOTO_MIN_PWM 75</span>）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>我在你的机器上做了什么（完整记录）</h2>
+    <div class="log"><span class="t">18:24</span> 小车到货，读图确认板子已焊装完成
+<span class="t">18:29</span> 检测到串口 <span class="b">/dev/cu.usbserial-10</span>，无需装驱动
+<span class="t">18:30</span> <span class="g">✔</span> 读取芯片：ESP32-D0WD-V3 / 4MB / MAC d4:d4:da:6c:48:7c
+<span class="t">18:33</span> <span class="g">✔</span> 备份卖家原厂固件 4.0MB（460800 失败 → 230400 成功）
+<span class="t">18:38</span> <span class="g">✔</span> 装 arduino-cli 1.5.2（brew 权限被拦，改用官方二进制）
+<span class="t">18:47</span> <span class="g">✔</span> ESP32 核心 2.0.17 装好；克隆 OpenBot 源码
+<span class="t">18:44</span> <span class="g">✔</span> 解析卖家源码 → 得到引脚 19/21、32/33，四驱差分
+<span class="t">18:46</span> <span class="g">✔</span> 改固件 4 处（引脚 / LED 冲突 / 关闭不存在的部件 / 死区补偿）
+<span class="t">18:47</span> <span class="g">✔</span> 编译通过：1,128,017 字节（app 分区 86%）
+<span class="t">18:48</span> <span class="g">✔</span> 烧录（921600 失败 → 230400 成功），hash 校验通过
+<span class="t">18:50</span> <span class="g">✔</span> 打开 DEBUG 重编译重烧，方便以后排查
+<span class="t">18:54</span> <span class="g">✔</span> 你手机 nRF Connect 扫到 <span class="y">OpenBotCar</span>（-67dBm）
+             Service UUID 61653DC3-4021-4D1E-BA83-8B4EEC61D613 → 确是 OpenBot 固件</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>固件改了哪 4 处</h2>
+    <ul>
+      <li><b>电机引脚</b>：OpenBot 默认 32/33/25/26 → 改成本车的 <span class="mono">19/21</span>（左）、<span class="mono">32/33</span>（右）</li>
+      <li><b>避开引脚冲突</b>：OpenBot 默认把 GPIO19 当左前 LED，正好撞左电机 → LED 引脚改 25/26</li>
+      <li><b>关掉不存在的部件</b>：电量分压、超声波、码盘、LED、OLED 全设 0（否则固件会去读浮空引脚）</li>
+      <li><b>死区补偿</b>：<span class="mono">VOLTAGE_MIN/MAX = 4.5/6.0</span> → 最小控制量 ≈191/255 ≈ 75%，正好跨过电机启动死区，摇杆一推就动</li>
+    </ul>
+    <p style="font-size:13px;color:#6b7280;margin:8px 0 0">蓝牙名设为 <code>OpenBotCar</code>；原厂固件完整备份可随时烧回。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>你自己怎么看 / 怎么跑</h2>
+    <p style="font-size:13.5px;margin:0 0 8px">终端里进到 <code>~/WorkBuddy/2026-11-02-09-38-25/openbot</code>，然后：</p>
+    <table>
+      <tr><th style="width:150px">命令</th><th>作用</th></tr>
+      <tr><td><code>./ob.sh status</code></td><td>看芯片、串口、固件大小、备份状态、引脚表</td></tr>
+      <tr><td><code>./ob.sh build</code></td><td>重新编译固件（打印字节数与占用率）</td></tr>
+      <tr><td><code>./ob.sh flash</code></td><td>烧录到车（自动用 230400 波特率）</td></tr>
+      <tr><td><code>./ob.sh monitor</code></td><td><b>实时看车在说什么</b>（串口日志，Ctrl+C 退出）</td></tr>
+      <tr><td><code>./ob.sh backup</code></td><td>重新备份车上当前固件</td></tr>
+      <tr><td><code>./ob.sh restore</code></td><td>烧回卖家原厂固件（网页遥控版）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>接下来：电池到货后的 3 步（测试固件已预烧 ✅）</h2>
+    <div class="tipbox" style="margin-bottom:10px">✅ <b>方向自动测试程序已于 11-04 预烧进板子</b>——电池一装上它自己循环测试，全程不用连手机/电脑/数据线。</div>
+    <ol class="steps">
+      <li><b>断 USB</b>（拔掉数据线），装 4 节 5 号镍氢电池，打开电源开关</li>
+      <li><b>把车架空</b>（垫起来让四轮悬空）——上电后车自动循环测试：左轮正/反 → 右轮正/反 → 全部正/反，看 2 分钟</li>
+      <li>对照「正转=轮子朝车头方向滚」记下哪步不对（比如"左轮反转时是向前滚的"），告诉我 → 我改两行引脚重烧（插 USB 时关电池开关即可，2 分钟）→ 方向确认后再烧回正式 OpenBot 固件</li>
+    </ol>
+    <div class="warnbox" style="margin-top:10px">⚠️ 铁律：<b>插 USB 烧录时必须关闭电池开关</b>——USB 的 5V 和板载电池 3.3V 同时供电会打架，轻则烧录失败，重则伤板。烧完拔线再开电池，二者不共存，所以<b>不存在"装电池就不能烧录"的冲突</b>。日常跑车走蓝牙，数据线只在重刷固件时用。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>文件都在哪</h2>
+    <table>
+      <tr><th style="width:210px">路径</th><th>内容</th></tr>
+      <tr><td class="mono">openbot/car-firmware/openbot/openbot.ino</td><td>适配你车的固件源码（改的就是这份）</td></tr>
+      <tr><td class="mono">openbot/car-firmware/moto-test/moto-test.ino</td><td>方向自动测试固件（当前在车上跑的就是它）</td></tr>
+      <tr><td class="mono">openbot/car-firmware/build/openbot.ino.bin</td><td>编译产物（1.08MB）</td></tr>
+      <tr><td class="mono">openbot/firmware-backup/original-firmware-4MB.bin</td><td>卖家原厂固件完整备份</td></tr>
+      <tr><td class="mono">openbot/src/</td><td>OpenBot 官方源码（固件 + iOS + 训练脚本）</td></tr>
+      <tr><td class="mono">openbot/ob.sh</td><td>命令行工具（上面那 6 个命令）</td></tr>
+      <tr><td class="mono">OpenBot小车上手计划.html</td><td>四周计划 / 采购清单 / 坑清单</td></tr>
+    </table>
+  </div>
+
+  <footer>这个页面我会随着进度更新 · 生成于 2026-11-04</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenBot 小车上手计划 · iPhone 16 版</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#1a1d21; --sub:#5b6270; --line:#e3e6ea;
+    --accent:#2563eb; --warn:#d97706; --danger:#dc2626; --ok:#059669;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+    line-height:1.7;font-size:15px;padding:20px 14px 60px}
+  .wrap{max-width:900px;margin:0 auto}
+  header{margin-bottom:22px}
+  h1{font-size:24px;margin:0 0 6px;letter-spacing:-.3px}
+  .sub{color:var(--sub);font-size:13px}
+  .badge{display:inline-block;background:#e8efff;color:var(--accent);border-radius:6px;
+    padding:2px 8px;font-size:12px;margin-right:6px;font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin-bottom:14px}
+  h2{font-size:17px;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:14.5px;margin:16px 0 6px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--sub);font-weight:600;font-size:12.5px;background:#fafbfc}
+  code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:12.5px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  ul,ol{margin:6px 0 6px 20px;padding:0}
+  li{margin:4px 0}
+  .tip{border-left:3px solid var(--accent);background:#f2f7ff;padding:9px 12px;
+    border-radius:0 8px 8px 0;font-size:13.5px;margin:10px 0}
+  .danger{border-left-color:var(--danger);background:#fff3f3}
+  .warn{border-left-color:var(--warn);background:#fffaf0}
+  .ok{border-left-color:var(--ok);background:#f1fbf6}
+  .phase{display:flex;gap:12px;margin:10px 0}
+  .pnum{flex:0 0 30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+  .pbody{flex:1}
+  .pbody b{font-size:14.5px}
+  .meta{color:var(--sub);font-size:12.5px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 0}
+  .kpi div{background:#f8fafc;border:1px solid var(--line);border-radius:9px;
+    padding:8px 12px;font-size:13px;flex:1;min-width:120px}
+  .kpi b{display:block;font-size:18px;color:var(--accent)}
+  footer{color:var(--sub);font-size:12px;text-align:center;margin-top:24px}
+  .chk{list-style:none;margin-left:0}
+  .chk li:before{content:"☐ ";color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>OpenBot 小车 · 上手计划</h1>
+  <div class="sub">
+    <span class="badge">iPhone 16 做大脑</span>
+    <span class="badge">ESP32 + BLE</span>
+    <span class="badge">4 周节奏</span>
+    <br>目标：一台能遥控、能跟人走、能自己跑策略的桌面级具身智能平台
+  </div>
+</header>
+
+<div class="kpi">
+  <div><b>≈¥180-270</b>总预算（含整车 ¥83.69，不含手机）</div>
+  <div><b>4 个周末</b>到全功能</div>
+  <div><b>2 小时</b>首次跑通遥控</div>
+  <div><b>0 行</b>硬件焊接（可选）</div>
+</div>
+
+<div class="card">
+  <h2>⚠️ 开工前必须知道的三个硬约束</h2>
+  <div class="tip danger">
+    <b>1. 主控必须是 ESP32，不是 Arduino Nano。</b><br>
+    OpenBot 的 iOS App <b>只支持蓝牙 BLE 连接</b>，不支持 USB 串口（安卓才走 USB-OTG）。而 BLE 只有 ESP32 板子支持，固件里对应 <code>DIY_ESP32</code> 配置。买 Nano = 白买。
+  </div>
+  <div class="tip warn">
+    <b>2. iOS App 不在 App Store，要自己编译安装。</b><br>
+    需要 Xcode + CocoaPods + <b>自建 Firebase 项目</b>（补 <code>GoogleService-Info.plist</code>，App 用谷歌登录存项目）。免费开发者证书 <b>7 天过期</b>，到期要重新连 Mac 编译一次；付费开发者账号（¥688/年）可一年一签。
+  </div>
+  <div class="tip warn">
+    <b>3. iPhone 16 是 199g 的配重。</b><br>
+    压在 3D 打印顶板上重心偏高，急转弯容易翻。对策：电池放最底层、轮距加宽、速度先用 Slow 档。
+  </div>
+</div>
+
+<div class="card">
+  <h2>采购清单（V3 · 适配淘宝整车 ¥83.69：ESP32 + MX1508×2 + 底盘 + 电机 + 电池盒，板载电源已做好）</h2>
+  <div class="tip ok">整车已覆盖：ESP32、电机驱动、TT 马达×4、底盘、电池盒、<b>全套电源电路</b>（4×5号电池 → 电机直供 + 升降压给 ESP32 3.3V）。以下才是还要买的。</div>
+  <table>
+    <tr><th>类别</th><th>物品</th><th>规格 / 说明</th><th>数量</th><th>参考价</th></tr>
+    <tr><td rowspan="1">供电</td><td><b>5号镍氢充电电池 + 充电器</b></td><td><b>4 节装</b>。爱乐普套装 ~¥150 / 品胜南孚 ~¥60。别用碱性——4 个马达一跑两小时就没</td><td>1 套</td><td>¥60-150</td></tr>
+    <tr><td rowspan="2">手机位</td><td><b>手机夹 + 冷靴支架</b></td><td>带 1/4 螺孔手机夹 + 小铝支架，固定车顶前部</td><td>1 套</td><td>¥25</td></tr>
+    <tr><td><b>小充电宝</b></td><td>USB-C 输出，绑车上给 iPhone 边跑边充</td><td>1</td><td>¥30</td></tr>
+    <tr><td>连接</td><td>杜邦线</td><td>公对母 / 母对母 各一把（接传感器用）</td><td>1 套</td><td>¥10</td></tr>
+    <tr><td rowspan="3">感知<br>（可后补）</td><td>HC-SR04 超声波</td><td>避障用</td><td>1</td><td>¥4</td></tr>
+    <tr><td>0.96" OLED</td><td>I2C 屏（锦上添花）</td><td>1</td><td>¥12</td></tr>
+    <tr><td>ESP32 备板</td><td>WROOM-32 DevKit 30 针，烧坏不等快递</td><td>1</td><td>¥30</td></tr>
+  </table>
+  <div class="tip">必买合计 ≈ <b>¥95-185</b> + 整车 ¥83.69 → <b>总投入 ≈ ¥180-270</b>。</div>
+  <div class="tip danger">已删除：L298N、18650 电池/充电器、降压模块、电解电容、M3 螺丝、车体 A/B —— 整车电源和结构件全覆盖。</div>
+  <div class="tip warn"><b>刷固件铁律：插 USB = 关电池开关，拔 USB = 开电池。</b>USB 5V 和电池 3.3V 同时供电会打架。</div>
+</div>
+
+<div class="card">
+  <h2>四周节奏（按你在保定过周末来排）</h2>
+
+  <div class="phase"><div class="pnum">0</div><div class="pbody">
+    <b>Week 0（工作日，线上）· 采购 + 环境预热</b>
+    <div class="meta">下单全部配件，寄到保定 | 我这周帮你把 Xcode / ESP32 工具链 / OpenBot 仓库备好</div>
+    <ul>
+      <li>收货后先<b>只验货不焊线</b>：ESP32 插 USB 看能不能被 Mac 识别（<code>ls /dev/cu.*</code> 能看到就正常）</li>
+      <li>Arduino IDE 装 ESP32 开发板支持 + 刷一个 Blink 例子验证烧录通路</li>
+      <li>装 <code>PinChangeInterrupt</code> 库（码盘/超声要用）</li>
+    </ul>
+  </div></div>
+
+  <div class="phase"><div class="pnum">1</div><div class="pbody">
+    <b>Week 1 · 机械 + 通电，目标：轮子会转</b>
+    <div class="meta">耗时 3-4 小时 | 验收：手机 App 或简单串口命令能让四个轮子前后转</div>
+    <ul>
+      <li>装手机支架、垫镜头俯角（整车电源和底盘出厂已装好，主要是加装手机位）</li>
+      <li>整车到手先核对：MX1508 电机供电接的是<b>电池 7.4V</b>（不是 3.3V），ESP32 供电走降压模块 5V</li>
+      <li>按卖家例程的引脚表改 OpenBot 固件宏（<code>DIY_ESP32</code> 段），我提前改好，到手即烧</li>
+      <li>⚠️ <b>先架空车轮</b>（垫起来让轮子悬空）再上电测试，避免飞车</li>
+    </ul>
+  </div></div>
+
+  <div class="phase"><div class="pnum">2</div><div class="pbody">
+    <b>Week 2 · 蓝牙连通 + iOS App 上身，目标：手机遥控</b>
+    <div class="meta">耗时 4-6 小时（大头在 Xcode 签名和 Firebase）| 验收：App 里能看到电量/速度，能开能停能转向</div>
+    <ul>
+      <li>Mac 上 clone 仓库 → <code>pod install</code> → 用自己的 Apple ID 签名 → 装机</li>
+      <li>建一个 Firebase 项目，下载 <code>GoogleService-Info.plist</code> 塞进工程（不做这步 App 起不来）</li>
+      <li>手机开开发者模式，信任证书；<b>记住 7 天后失效这件事</b></li>
+      <li>BLE 配对：App 里出现 OpenBot 设备 → 连接 → Free Roam 页控制</li>
+      <li>接一个蓝牙手柄（PS4/Xbox）体验更好，键盘控制会手忙脚乱</li>
+    </ul>
+  </div></div>
+
+  <div class="phase"><div class="pnum">3</div><div class="pbody">
+    <b>Week 3 · 采集数据 + 人物跟随，目标：它会看你</b>
+    <div class="meta">耗时 3 小时 | 验收：车能锁定人并保持 1-2 米距离跟走</div>
+    <ul>
+      <li>先用 App 的 Object Tracking + 预训练模型（COCO 80 类里选 person）</li>
+      <li>调整摄像头俯角（<b>下倾 15-30°</b>，让前方 1-3 米进画面），这是跟随能不能成功的关键</li>
+      <li>地上贴胶带划一条测试路线，重复跑，记录成功率</li>
+    </ul>
+  </div></div>
+
+  <div class="phase"><div class="pnum">4</div><div class="pbody">
+    <b>Week 4 · 训练自己的驾驶策略，目标：端到端自动驾驶</b>
+    <div class="meta">耗时 1 个周末 + 训练时间 | 验收：跑完一圈不撞、不卡</div>
+    <ul>
+      <li>Data Collection 页录 20-30 圈（每圈 1-2 分钟，不同光照/角度各录几组）</li>
+      <li>用仓库 <code>policy/</code> 的训练脚本在 Mac 上训练（M 系列芯片够用），导出 TFLite</li>
+      <li>模型传进 App（支持自定义 TFLite，可选 CPU/GPU/Neural Engine）→ Autopilot 页跑</li>
+      <li>这里是真正的具身智能：数据 → 训练 → 部署 → 失败分析 → 再采数据</li>
+    </ul>
+  </div></div>
+</div>
+
+<div class="card">
+  <h2>坑清单（照这个避开 90% 的翻车）</h2>
+  <table>
+    <tr><th>坑</th><th>后果</th><th>对策</th></tr>
+    <tr><td>买了 Arduino Nano</td><td>iOS 连不上，纯废</td><td>只买 ESP32（WROOM-32 DevKit）</td></tr>
+    <tr><td>整车无码盘（测速）</td><td>App 里速度显示为 0、无里程计；<b>不影响遥控/跟随/数据采集/策略训练</b></td><td>固件先关掉（<code>HAS_SPEED_SENSORS 0</code>）；以后想上里程计再买带霍尔编码器的 TT 马达 ×4（~¥80）替换，信号线接 ESP32 空闲 GPIO</td></tr>
+    <tr><td>刷固件时电池没关</td><td>USB 5V 与电池 3.3V 同时供电，轻则烧录失败重则伤板</td><td>铁律：插 USB = 关电池，拔 USB = 开电池</td></tr>
+    <tr><td>用碱性电池跑车</td><td>4 个马达 1-2 小时耗光，误判车有毛病</td><td>上镍氢充电电池，电压稳、放电猛</td></tr>
+    <tr><td>电池不带保护板</td><td>过放鼓包，有安全风险</td><td>买带保护板的 18650，配专用充电器，闻到异味立刻停用</td></tr>
+    <tr><td>对角电机接反</td><td>车原地转圈或倒退</td><td>先架空测试，接反就把该电机两根线对调</td></tr>
+    <tr><td>免费开发者证书 7 天过期</td><td>App 突然打不开，以为坏了</td><td>每 7 天连 Mac 重编一次；玩得认真就上 ¥688 付费账号</td></tr>
+    <tr><td>没建 Firebase 项目</td><td>App 卡在启动/登录页</td><td>提前按 README 建项目，补 plist</td></tr>
+    <tr><td>在地毯上测试</td><td>TT 马达扭矩不够，跑不动还以为固件错</td><td>硬质地板/桌面测试，地毯是最后再挑战</td></tr>
+    <tr><td>摄像头角度太高/太低</td><td>跟随模型拿不到有效画面，一直丢目标</td><td>下倾 15-30°，手机固定牢，别用皮筋晃</td></tr>
+    <tr><td>直接上 Fast 档</td><td>3D 打印车体 + 200g 手机，转弯翻车</td><td>Slow 档起步，重心压低，轮距加宽</td></tr>
+    <tr><td>只录一种光照的数据</td><td>模型换个环境就瞎</td><td>白天/晚上、顺光/逆光各录几组</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>验收 checklist</h2>
+  <ul class="chk">
+    <li>ESP32 能被 Mac 识别，能烧录 Blink</li>
+    <li>四个轮子方向正确（架空测试）</li>
+    <li>App 能通过 BLE 连上，能看到电量与测速数据</li>
+    <li>手柄遥控正常，急停有效</li>
+    <li>人物跟随能稳定跟 30 秒以上</li>
+    <li>数据采集能正常落盘，导出到 Mac 能打开</li>
+    <li>训练出的模型在车上能跑完一圈不撞</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>跑通之后的进阶方向</h2>
+  <ul>
+    <li><b>相机升级</b>：把闲置的 Osmo X3 云台架上车，做三轴稳定的“机器人眼睛”（独立供电，不占车电）</li>
+    <li><b>换脑</b>：树莓派/Jetson 走 <code>robot/linux</code> 分支，摆脱手机，跑更大模型</li>
+    <li><b>自定义任务</b>：把“找红色物体”“巡线”“门口巡逻”写成自己的策略</li>
+    <li><b>多机协同</b>：再买一套底盘，两台车互相避让（App 支持 WebRTC 远程控制）</li>
+  </ul>
+</div>
+
+<footer>
+  参考：github.com/ob-f/OpenBot · 计划按“每周一个可验收成果”编排 · 遇坑随时找小咪
+</footer>
+
+</div>
+</body>
+</html>
