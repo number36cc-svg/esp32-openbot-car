@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>esp32-openbot-car · 项目入口</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1a1c1f; --muted:#5f6672; --line:#e3e6ea; --accent:#2563eb; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#131518; --card:#1b1e22; --text:#eef0f3; --muted:#9aa3af; --line:#2b3037; --accent:#6ea0ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:32px 20px 48px; background:var(--bg); color:var(--text);
+         font:16px/1.65 -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin: 0 0 26px; font-size: 14px; }
+  .card { display:block; background:var(--card); border:1px solid var(--line); border-radius:14px;
+          padding:18px 20px; margin-bottom:14px; text-decoration:none; color:inherit; transition:.15s; }
+  .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .card b { display:block; font-size:17px; margin-bottom:4px; }
+  .card span { color: var(--muted); font-size:14px; }
+  .meta { color: var(--muted); font-size:13px; margin-top:26px; }
+  a.plain { color: var(--accent); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>esp32-openbot-car</h1>
+  <p class="sub">把一台 ¥84 的 ESP32 玩具车，改成 iPhone 驱动的 AI 机器人</p>
+
+  <a class="card" href="web/OpenBot项目控制台.html">
+    <b>项目控制台 →</b>
+    <span>硬件核对结果 / 引脚表 / 带时间戳的操作流水 / 固件改动 / 电池到货后的步骤</span>
+  </a>
+
+  <a class="card" href="web/OpenBot小车上手计划.html">
+    <b>小车上手计划 →</b>
+    <span>四周节奏 / 采购清单 / 验收标准 / 坑清单</span>
+  </a>
+
+  <a class="card" href="https://github.com/number36cc-svg/esp32-openbot-car#readme">
+    <b>README（项目总览）→</b>
+    <span>架构图 / 快速开始 / 关键事实速查 / 文档索引</span>
+  </a>
+
+  <a class="card" href="docs/04-踩坑记录.md">
+    <b>20 条踩坑记录 →</b>
+    <span>现象 / 根因 / 解法 / 怎么提前避开</span>
+  </a>
+
+  <p class="meta">
+    源码：<a class="plain" href="firmware/openbot/openbot.ino">firmware/openbot/openbot.ino</a> ·
+    <a class="plain" href="firmware/moto-test/moto-test.ino">moto-test</a> ·
+    <a class="plain" href="scripts/ob.sh">scripts/ob.sh</a><br>
+    基于 <a class="plain" href="https://github.com/ob-f/OpenBot">OpenBot</a>（MIT）· 本项目 MIT
+  </p>
+</div>
+</body>
+</html>
