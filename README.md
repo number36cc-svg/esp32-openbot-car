@@ -9,8 +9,9 @@
 > 本仓库记录的是**从拆快递到跑通 AI 的全过程**：源码、接线、刷机脚本、踩过的坑，以及每个技术选择的"为什么"。
 
 ![status](https://img.shields.io/badge/固件-已刷入%20%C2%B7%20BLE%20已广播-success)
-![status](https://img.shields.io/badge/电机方向-等电池-yellow)
-![status](https://img.shields.io/badge/iOS%20App-待编译-lightgrey)
+![status](https://img.shields.io/badge/首次BLE驾驶-成功-success)
+![status](https://img.shields.io/badge/浏览器遥控-上线%20%C2%B7%20摇杆%2B组合键-success)
+![status](https://img.shields.io/badge/iOS%20App-Xcode%20下载中-yellow)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 🌐 **在线入口（手机可直接看）**：https://number36cc-svg.github.io/esp32-openbot-car/
@@ -72,8 +73,10 @@
 | OpenBot 固件适配 | ✅ 完成 | 引脚、死区、外设开关全部按本车改好，编译通过（1,128,017 B，占 app 分区 86%） |
 | 烧录 + 校验 | ✅ 完成 | esptool 230400 波特率烧写，Hash verified |
 | BLE 广播验证 | ✅ 完成 | iPhone nRF Connect 扫到 `OpenBotCar`，服务 UUID 正确 |
-| **电机方向核对** | ⏳ 等电池 | 已预烧「方向自动测试固件」，装电池即自动循环测试，无需连任何设备 |
-| iOS App 编译 | ⏳ 待做 | Xcode + CocoaPods + 自建 Firebase；免费证书 7 天过期 |
+| **电机方向核对** | ✅ 完成 | 方向测试固件实车验证：四轮按预期顺序正/反转 |
+| **首次 BLE 驾驶** | ✅ 完成 | Mac 遥控成功开车（途中揪出心跳解析 bug，见踩坑 #23） |
+| **浏览器遥控** | ✅ 完成 | 摇杆 + WASD 组合键 + 手机 Safari 可用（`webdrive.py`） |
+| iOS App 编译 | ⏳ 进行中 | Xcode 下载中（12GB+）；随后 CocoaPods + 自建 Firebase |
 | 人物跟随 / 策略训练 | ⏳ 待做 | 依赖 iOS App |
 
 ## 4. 快速开始
@@ -111,7 +114,24 @@ brew install esptool
 > ⚠️ **烧录铁律**：插 USB 前**关闭电池开关**。USB 的 5V 和板载电池 3.3V 同时供电会打架，轻则烧录失败，重则伤板。
 > 拔 USB 后再开电池跑车。两者永不同时在线。
 
-### 4.3 恢复原厂固件（想玩回卖家的 WiFi 网页遥控）
+### 4.3 不编译 iOS App，先用 Mac / 手机遥控开车（过渡方案）
+
+```bash
+./remote-control/run-webdrive.sh    # 推荐：浏览器遥控
+#   Mac 开 http://localhost:8765
+#   iPhone 同 WiFi 开 http://<Mac的IP>:8765
+#   摇杆（模拟量）+ W/A/S/D（真 keyup，可任意组合画弧线）
+
+./remote-control/run-drive.sh       # 备选：终端遥控（单键，无组合）
+# W/S/A/D 前进/后退/左右转（按住不放才持续，松手 0.5s 自动停）
+# 空格刹车 · 1-4 速度档 · Q 退出（自动刹车）
+```
+
+首次运行 macOS 会弹「终端想使用蓝牙」→ 点**允许**（没弹就去
+系统设置 → 隐私与安全性 → 蓝牙 手动勾上）。Python 直连 BLE 的
+`OpenBotCar`，协议见 `remote-control/drive.py` 文件头注释。
+
+### 4.4 恢复原厂固件（想玩回卖家的 WiFi 网页遥控）
 
 ```bash
 ./scripts/ob.sh backup      # 首次使用前先备份（读到 4MB 镜像，约 3 分钟）
@@ -125,7 +145,7 @@ brew install esptool
 | 左电机 | `IN1=GPIO19` `IN2=GPIO21` | 左前 + 左后并联 |
 | 右电机 | `IN1=GPIO32` `IN2=GPIO33` | 右前 + 右后并联 |
 | 停止语义 | **两脚同时高 = 刹车**；同时低 = 滑行 | 与 OpenBot 的 stop 逻辑一致，无需改协议 |
-| 启动死区 | 占空比 **< 75% 电机完全不转** | 固件用 `VOLTAGE_MIN/MAX = 4.5/6.0` 做补偿 |
+| 启动死区 | 占空比 **< 75% 电机完全不转** | 固件在 PWM 输出端补偿：`duty_from_ctrl()` 把控制量 0-255 映射到 191-255（不要做在控制量下限，见踩坑 #21） |
 | 电池 | **4 节 5 号镍氢（1.2V）**，不要碱性、不要 3S 18650 | MX1508 上限 9.6V；板载升压固定 6V |
 | 烧录波特率 | **230400**（921600 / 460800 必失败） | CH340 的通病 |
 | 烧录偏移 | `0x1000` bootloader / `0x8000` partitions / `0x10000` app | flash mode `dio`, freq `40m`, size `4MB` |
@@ -144,7 +164,12 @@ esp32-openbot-car/
 │   ├── setup-toolchain.sh         # 一键装 arduino-cli + ESP32 核心
 │   ├── build.sh                   # 编译
 │   └── ob.sh                      # status / build / flash / monitor / backup / restore / pinmap
-├── docs/                          # 9 篇文档，见下节
+├── remote-control/
+│   ├── drive.py                   # Mac 端 BLE 遥控（bleak，终端版，单键）
+│   ├── webdrive.py                # 浏览器遥控服务器（WebSocket + 内嵌网页，摇杆 + 组合键，手机可用）
+│   ├── run-drive.sh               # 终端遥控启动器
+│   └── run-webdrive.sh            # 浏览器遥控启动器
+├── docs/                          # 10 篇文档，见下节
 └── web/                           # 两个可视化页面（浏览器直接打开）
     ├── OpenBot小车上手计划.html     # 四周计划 + 采购 + 坑清单
     └── OpenBot项目控制台.html       # 实时状态板（硬件核对/引脚/时间线）
@@ -157,12 +182,13 @@ esp32-openbot-car/
 | [docs/01-硬件清单与选型.md](docs/01-硬件清单与选型.md) | 买什么、花多少、**为什么否掉了 L298N / 18650 / Arduino Nano / 编码器** |
 | [docs/02-引脚与接线.md](docs/02-引脚与接线.md) | GPIO 对照表、MX1508 的刹车语义、板载电源链路、怎么用万用表自己量出来 |
 | [docs/03-刷机指南.md](docs/03-刷机指南.md) | 从零环境到烧录成功的完整命令，含全部报错的处理 |
-| [docs/04-踩坑记录.md](docs/04-踩坑记录.md) | **20 个坑**：现象 / 根因 / 解法 / 怎么提前避开 |
+| [docs/04-踩坑记录.md](docs/04-踩坑记录.md) | **23 个坑**：现象 / 根因 / 解法 / 怎么提前避开 |
 | [docs/05-固件适配说明.md](docs/05-固件适配说明.md) | 改了哪 4 处、为什么改、怎么改成你自己车的引脚 |
 | [docs/06-iOS-App编译指南.md](docs/06-iOS-App编译指南.md) | Firebase / CocoaPods / 签名 / 7 天证书，以及"为什么 App Store 没有" |
 | [docs/07-技术路线图.md](docs/07-技术路线图.md) | 四层能力边界 + 五层视觉深度学习融合路线（含快慢双系统） |
 | [docs/08-开发全过程记录.md](docs/08-开发全过程记录.md) | 每天的决策与理由，包括被推翻的方案 |
 | [docs/09-项目结构与文件说明.md](docs/09-项目结构与文件说明.md) | 每个文件干什么，一次控制指令走过哪些代码 |
+| [docs/10-代码与通信原理详解.md](docs/10-代码与通信原理详解.md) | **⭐ 最好读**：手机/电脑怎么连上车、指令怎么变成轮子转动，BLE/协议/PWM/混控全链路图解 |
 
 ## 8. 最值得看的六个坑（摘要）
 
@@ -172,6 +198,8 @@ esp32-openbot-car/
 4. **CH340 高速烧录必挂**：460800 读备份超时、921600 烧写失败，一律降到 230400。
 5. **3S 18650 = 烧驱动**：MX1508 上限 9.6V，而这车用 4 节 5 号（板载升压 6V），18650 方案从根上就是错的。
 6. **测试固件不广播蓝牙**：烧了方向测试程序后 nRF Connect 扫不到 `OpenBotCar` 是正常的，别以为板子坏了。
+7. **心跳帧带冒号 = 车只嗡不转**：`h:400` 被固件 `atol` 解析成 0，控制量每圈都被清零——链路每环"看起来都正常"，只有数值是错的（踩坑 #23）。
+8. **终端按键没法组合**：macOS 只给最后按下的键发重复信号、拿不到 keyup——想要 W+A 同时按住，用浏览器遥控（webdrive.py）。
 
 完整版见 [docs/04-踩坑记录.md](docs/04-踩坑记录.md)。
 

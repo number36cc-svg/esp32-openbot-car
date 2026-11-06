@@ -94,10 +94,14 @@
 //    Other batteries, e.g.: 2S 6.8f / 8.4f, 6 x AA 6.0f / 9.0f, 8 x AA 8.0f / 12.0f
 // 4 x AA 镍氢：满电约 5.6-6.0V，空电约 4.4V
 // VOLTAGE_MIN/VOLTAGE_MAX 决定固件的最小控制量 ctrl_min = 255 * MIN / MAX
-// 卖家固件要求占空比 >= 75% 电机才转 -> 4.5/6.0 = 0.75 -> ctrl_min ≈ 191
+// 注意：死区不能靠 ctrl_min 实现。若 ctrl_min=191/ctrl_max=192，控制量只剩 1 个台阶，
+// 等于把摇杆变成开关，左右轮无法差速 -> 车不能转弯。
+// 本车（MX1508 + TT 马达，4xAA）实测占空比 >= 75% 才转动，
+// 因此死区放在下面的 duty_from_ctrl() 里做，控制量保持 0..255 全量程。
+#define MOTOR_MIN_DUTY 191  // MX1508+TT: 占空比 191/255 ≈ 75%，低于此电机不转
 #define VOLTAGE_LOW 4.4f
 #define VOLTAGE_MAX 6.0f
-#define VOLTAGE_MIN 4.5f  // lowest voltage at which the motors turn (no phone mode)
+#define VOLTAGE_MIN 0.0f  // 死区由 MOTOR_MIN_DUTY 处理，控制量不设下限
 #define VOLTAGE_DIVIDER_FACTOR DEFAULT_VOLTAGE_DIVIDER_FACTOR  // (R1 + R2) / R2
 #endif
 
@@ -748,7 +752,7 @@ class MyCallbacks : public BLECharacteristicCallbacks {
 unsigned long turn_direction_time = 0;
 unsigned long turn_direction_interval = 5000;
 unsigned int turn_direction = 0;
-int ctrl_max = 192;
+int ctrl_max = 255;  // 控制量全量程，死区在 duty_from_ctrl() 里补
 int ctrl_slow = 96;
 int ctrl_min = (int)255.0 * VOLTAGE_MIN / VOLTAGE_MAX;
 bool explore_enabled = !HAS_GAMEPAD;
@@ -1733,13 +1737,23 @@ void coast_right_motors_mtv() {
 
 #else
 
+// 把控制量（0..255 的幅值）映射成实际 PWM 占空比（MOTOR_MIN_DUTY..255）。
+// 原因：MX1508 + TT 马达在 4xAA（≈4.8V）下，占空比低于 75% 完全不转。
+// 直接把控制量当占空比用，会让 0-190 这一大段"推了不动"，用户体验是摇杆前 3/4 是死的。
+// 映射后：推一点点 = 刚刚转起来，推到底 = 全速，中间 64 个台阶用来差速转弯。
+int duty_from_ctrl(int ctrl) {
+  int mag = abs(ctrl);                                   // 0..255
+  int duty = MOTOR_MIN_DUTY + (255 - MOTOR_MIN_DUTY) * mag / 255;
+  return constrain(duty, MOTOR_MIN_DUTY, 255);
+}
+
 void update_left_motors() {
   if (ctrl_left < 0) {
-    analogWrite(PIN_PWM_L1, -ctrl_left);
+    analogWrite(PIN_PWM_L1, duty_from_ctrl(ctrl_left));
     analogWrite(PIN_PWM_L2, 0);
   } else if (ctrl_left > 0) {
     analogWrite(PIN_PWM_L1, 0);
-    analogWrite(PIN_PWM_L2, ctrl_left);
+    analogWrite(PIN_PWM_L2, duty_from_ctrl(ctrl_left));
   } else {
     if (coast_mode) {
       coast_left_motors();
@@ -1761,11 +1775,11 @@ void coast_left_motors() {
 
 void update_right_motors() {
   if (ctrl_right < 0) {
-    analogWrite(PIN_PWM_R1, -ctrl_right);
+    analogWrite(PIN_PWM_R1, duty_from_ctrl(ctrl_right));
     analogWrite(PIN_PWM_R2, 0);
   } else if (ctrl_right > 0) {
     analogWrite(PIN_PWM_R1, 0);
-    analogWrite(PIN_PWM_R2, ctrl_right);
+    analogWrite(PIN_PWM_R2, duty_from_ctrl(ctrl_right));
   } else {
     if (coast_mode) {
       coast_right_motors();
@@ -2112,7 +2126,9 @@ void process_light_msg() {
 #endif
 
 void process_heartbeat_msg() {
-  heartbeat_interval = atol(msg_buf);  // convert to long
+  const char *p = msg_buf;
+  while (*p == ':') p++;  // 兼容 "h:400"（带冒号）与 "h400" 两种帧
+  heartbeat_interval = atol(p);          // convert to long
   heartbeat_time = millis();
 #if DEBUG
   Serial.print("Heartbeat Interval: ");
